@@ -11,6 +11,7 @@ pipeline {
         APP_IMAGE = 'student-task-manager'
         DOCKERHUB_CREDENTIALS = 'dockerhub-creds'
         DOCKERHUB_USERNAME = 'mrutunjayborde'
+        KUBECONFIG = '/var/jenkins_home/minikube-config'
     }
 
     stages {
@@ -69,9 +70,10 @@ pipeline {
                     sed "s|DOCKERHUB_IMAGE_PLACEHOLDER|$DOCKERHUB_USERNAME/$APP_IMAGE:$BUILD_NUMBER|g" \
                       k8s/deployment.yaml > k8s/deployment.generated.yaml
 
-                    kubectl apply -f k8s/deployment.generated.yaml
-                    kubectl apply -f k8s/service.yaml
-                    kubectl rollout status deployment/student-task-manager --timeout=180s
+                    kubectl --kubeconfig="$KUBECONFIG" apply -f k8s/deployment.generated.yaml
+                    kubectl --kubeconfig="$KUBECONFIG" apply -f k8s/service.yaml
+
+                    kubectl --kubeconfig="$KUBECONFIG" rollout status deployment/student-task-manager --timeout=180s
                 '''
             }
         }
@@ -79,9 +81,9 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 sh '''
-                    kubectl get pods -l app=student-task-manager
-                    kubectl get deployment student-task-manager
-                    kubectl get service student-task-manager
+                    kubectl --kubeconfig="$KUBECONFIG" get pods -l app=student-task-manager
+                    kubectl --kubeconfig="$KUBECONFIG" get deployment student-task-manager
+                    kubectl --kubeconfig="$KUBECONFIG" get service student-task-manager
                 '''
             }
         }
