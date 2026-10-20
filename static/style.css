@@ -1,0 +1,28 @@
+:root { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #172033; background: #f4f6fb; }
+* { box-sizing: border-box; }
+body { margin: 0; padding: 48px 18px; }
+.container { max-width: 760px; margin: 0 auto; }
+header { margin-bottom: 28px; }
+.eyebrow { color: #4d62d6; font-size: 12px; font-weight: 800; letter-spacing: .15em; }
+h1 { font-size: clamp(32px, 6vw, 46px); margin: 8px 0; letter-spacing: -.04em; }
+.subtitle { color: #69738a; margin-top: 8px; }
+.add-form { display: flex; gap: 10px; margin-bottom: 20px; }
+input { flex: 1; min-width: 0; border: 1px solid #dce1ed; border-radius: 12px; padding: 14px 16px; font: inherit; background: white; }
+button { border: 0; border-radius: 10px; padding: 12px 17px; font: inherit; font-weight: 700; cursor: pointer; }
+.add-form button { background: #4d62d6; color: white; }
+.task-panel { background: white; border: 1px solid #e5e8f0; border-radius: 18px; padding: 22px; box-shadow: 0 12px 35px #26365b0b; }
+.panel-heading { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #edf0f6; padding-bottom: 14px; }
+h2 { margin: 0; font-size: 19px; }
+.panel-heading span { color: #7a8498; font-size: 13px; }
+.tasks { list-style: none; padding: 0; margin: 0; }
+.task { display: flex; gap: 12px; align-items: center; padding: 15px 0; border-bottom: 1px solid #f0f2f7; }
+.task:last-child { border-bottom: 0; }
+.task form { margin: 0; }
+.check { color: #4d62d6; font-size: 21px; padding: 0 5px; background: transparent; }
+.task-title { flex: 1; overflow-wrap: anywhere; }
+.completed .task-title { text-decoration: line-through; color: #9aa2b2; }
+.delete { background: #fff0f0; color: #b64242; padding: 8px 10px; font-size: 12px; }
+.empty { color: #7a8498; padding: 12px 0; }
+footer { text-align: center; margin: 24px 0; color: #8b93a4; font-size: 12px; }
+footer a { color: #4d62d6; }
+@media (max-width: 480px) { body { padding: 28px 12px; } .add-form { flex-direction: column; } .task-panel { padding: 16px; } }
