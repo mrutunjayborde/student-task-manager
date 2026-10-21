@@ -1,126 +1,154 @@
 # Student Task Manager — CCA 2 CI/CD Project
 
-A small Flask web application for managing student tasks. This repository is designed for a Cloud Computing and DevOps CCA demonstrating Jenkins, Docker Hub, and Kubernetes on Minikube.
+## Project Overview
+
+The Student Task Manager is a small web application built using Python and Flask. It was developed for the Cloud Computing and DevOps CCA 2 assignment to demonstrate Continuous Integration and Continuous Deployment (CI/CD) using Jenkins, Docker, Docker Hub, Kubernetes, and Minikube.
+
+The project demonstrates automated testing, Docker image creation, publishing images to Docker Hub, deploying the application to Kubernetes, and verifying the deployment after a code change.
 
 ## Features
+
 - Add a task
-- Mark a task complete or incomplete
+- Mark a task as complete or incomplete
 - Delete a task
-- `/health` endpoint for Kubernetes health checks
-- Pytest automated tests
+- Health-check endpoint at `/health`
+- Automated tests using Pytest
+- Docker containerization
+- Jenkins CI/CD pipeline
+- Kubernetes deployment using Minikube
 
-**Demo limitation:** tasks are held in memory. They reset when the application process restarts. This is intentional to keep the CCA application small; it is not intended as a production task manager.
+**Demo limitation:** Tasks are stored in memory and reset when the application process restarts. This keeps the application simple for demonstration purposes.
 
-## 1. Run locally (optional)
+## Project Repositories
 
-Requires Python 3.12 or newer.
+- **GitHub:** https://github.com/mrutunjayborde/student-task-manager
+- **Docker Hub:** https://hub.docker.com/r/mrutunjayborde/student-task-manager
 
-```bash
-python -m venv .venv
-# Windows PowerShell:
-.venv\Scripts\Activate.ps1
-# macOS/Linux:
-# source .venv/bin/activate
-pip install -r requirements.txt
-pytest -q
-python app.py
+## Technologies Used
+
+- Python
+- Flask
+- Pytest
+- Git and GitHub
+- Jenkins
+- Docker and Docker Hub
+- Kubernetes
+- Minikube
+- Windows PowerShell
+
+## Project Structure
+
+```text
+student-task-manager/
+├── app.py
+├── requirements.txt
+├── Dockerfile
+├── Jenkinsfile
+├── README.md
+├── .dockerignore
+├── .gitignore
+├── k8s/
+│   ├── deployment.yaml
+│   └── service.yaml
+├── static/
+│   └── style.css
+├── templates/
+│   └── index.html
+└── tests/
+    └── test_app.py
 ```
 
-Open `http://127.0.0.1:5000`.
+## CI/CD Pipeline
 
-## 2. Create GitHub repository
+A Jenkins Pipeline job named `student-task-manager-pipeline` is used to automate the build, test, image publishing, and deployment process.
 
-1. Create a new **public** GitHub repository named `student-task-manager` (or use a private repo and configure credentials in Jenkins).
-2. In this project folder, run:
+The pipeline contains the following stages:
 
-```bash
-git init
-git add .
-git commit -m "Initial Student Task Manager project"
-git branch -M main
-git remote add origin https://github.com/YOUR_GITHUB_USERNAME/student-task-manager.git
-git push -u origin main
-```
+1. **Checkout SCM:** Retrieves the project source code from GitHub.
+2. **Build and Test:** Installs the required Python dependencies and runs automated Pytest tests.
+3. **Build Docker Image:** Builds a Docker image containing the application and its dependencies.
+4. **Push Image to Docker Hub:** Authenticates using Jenkins credentials and pushes the image to Docker Hub.
+5. **Deploy to Minikube:** Applies the Kubernetes Deployment and Service manifests and deploys the new application image.
+6. **Verify Deployment:** Checks the Kubernetes deployment, pods, service, and rollout status.
 
-Replace `YOUR_GITHUB_USERNAME` with your own GitHub username. Do not commit passwords or access tokens.
+Docker Hub credentials are stored in Jenkins using the credential ID `dockerhub-creds`. The access token is not stored in this repository.
 
-## 3. Prepare Docker Hub
+## Docker Image
 
-1. Create/sign in to Docker Hub and create a repository named `student-task-manager`.
-2. In Jenkins, add a credential of type **Username with password** (or a Docker Hub access token as the password).
-3. Set its ID to `dockerhub-creds`. Use your Docker Hub username as the username and an access token as the password.
-4. In the `Jenkinsfile`, replace `REPLACE_WITH_DOCKERHUB_USERNAME` with your Docker Hub username.
+The application image is published to:
 
-## 4. Jenkins and required tools
+`mrutunjayborde/student-task-manager`
 
-The Jenkins agent that runs this pipeline must have `git`, `docker`, `kubectl`, access to the Docker daemon, and a working kubeconfig for the target Minikube cluster. Jenkins also needs Pipeline and Git plugins. Docker must be usable by the Jenkins agent account.
+The pipeline publishes the image with a Jenkins build-number tag and the `latest` tag. Kubernetes deploys the build-number-tagged image so that a new pipeline run can deploy the updated version.
 
-The assignment guide expects Jenkins on an AWS server and deployment to Minikube. Configure Minikube on the environment where `kubectl` in the Jenkins agent can reach it. A Minikube cluster on a separate laptop is not automatically reachable from an AWS Jenkins server. If your college setup uses a different arrangement, adapt the deployment connection accordingly.
+Docker Hub repository:
 
-Create a Jenkins **Pipeline** job:
-1. Choose **Pipeline script from SCM**.
-2. SCM: **Git**.
-3. Repository URL: `https://github.com/YOUR_GITHUB_USERNAME/student-task-manager.git`.
-4. Branch: `*/main`.
-5. Script path: `Jenkinsfile`.
-6. Save and click **Build Now**.
+https://hub.docker.com/r/mrutunjayborde/student-task-manager
 
-For automatic builds on every GitHub push, configure a GitHub webhook to your reachable Jenkins URL and enable the GitHub hook trigger in the job. For a classroom demo, Build Now is acceptable if automatic webhook triggering is not required by your evaluator; the guide itself asks for the pipeline and a second run after a code change.
+## Kubernetes Deployment
 
-## 5. Verify the deployment
+The Kubernetes configuration files are stored in the `k8s/` directory:
 
-After a successful Jenkins run, on the machine/context configured for Minikube run:
+- `k8s/deployment.yaml` defines the application deployment and container configuration.
+- `k8s/service.yaml` exposes the application through a Kubernetes Service.
+
+The application was deployed to a local Minikube cluster. The pod was verified as running, and the deployed application was opened in a web browser.
+
+Commands used to verify the deployment include:
 
 ```bash
-kubectl get pods -l app=student-task-manager
-kubectl get deployment student-task-manager
-kubectl get service student-task-manager
-kubectl port-forward service/student-task-manager 8080:5000
+kubectl get pods
+kubectl get deployments
+kubectl get services
 ```
 
-Then open `http://127.0.0.1:8080`. Keep port-forward running while testing. You can also check `http://127.0.0.1:8080/health` and should see `{"status":"ok"}`.
+To access the application through Minikube, use:
 
-## 6. Demonstrate the second deployment
-
-1. Edit a visible heading in `templates/index.html`, for example change `My Task Manager` to `My Student Task Manager`.
-2. Commit and push the change:
-
-```bash
-git add templates/index.html
-git commit -m "Update task manager heading"
-git push
+```powershell
+& "C:\Program Files\Kubernetes\Minikube\minikube.exe" service student-task-manager --url
 ```
-3. Run the Jenkins job again (or let the configured webhook trigger it).
-4. Show the new successful build number, image tag in Docker Hub, and updated page.
 
-The pipeline tags each image with the Jenkins build number as well as `latest`. Kubernetes uses the build-number tag, so the second run deploys the new image version.
+Open the URL returned by the command in a web browser.
 
-## Pipeline stages (viva summary)
+The health endpoint can also be checked at `/health` on the application URL. It returns a JSON response indicating that the application is healthy.
 
-1. **Checkout:** Jenkins downloads the latest repository code.
-2. **Build and Test:** runs the pytest tests inside a temporary Python container.
-3. **Build Docker Image:** packages the app and its runtime dependencies into an image.
-4. **Push Image:** logs in with a Jenkins-stored credential and uploads the image to Docker Hub.
-5. **Deploy to Minikube:** applies Kubernetes Deployment and Service manifests.
-6. **Verify Deployment:** checks the pod, Deployment, Service and rollout status.
+## Second Deployment and Code Change
 
-## Submission checklist
+To demonstrate the CI/CD process, the heading in `templates/index.html` was changed from:
 
-- [ ] GitHub repository URL
-- [ ] `Jenkinsfile`
-- [ ] `Dockerfile`
-- [ ] `k8s/deployment.yaml` and `k8s/service.yaml`
-- [ ] Screenshot of Jenkins pipeline success
-- [ ] Screenshot of Docker Hub image tags
-- [ ] Screenshot of `kubectl get pods`, Deployment and Service
-- [ ] Screenshot of the application in a browser
-- [ ] Screenshot showing the second code change deployed
-- [ ] Brief report explaining setup and pipeline stages
+`My Task Manager`
 
-## Troubleshooting notes
+to:
 
-- **`docker: permission denied`:** ensure the Jenkins agent can access the Docker daemon; restart the agent after changing group permissions.
-- **Docker Hub push denied:** verify the repo exists, credential ID is `dockerhub-creds`, and the Jenkinsfile username matches the Docker Hub account.
-- **`kubectl` connection refused:** verify Minikube is running and the Jenkins agent's kubeconfig points to a cluster it can actually reach.
-- **ImagePullBackOff:** verify the image repository/tag exists and is public, or configure Kubernetes image-pull credentials for a private repository.
-- **Port-forward doesn't start:** run the command on a machine with access to the correct cluster context and check `kubectl get pods` first.
+`My Student Task Manager`
+
+The change was committed and pushed to GitHub. The Jenkins pipeline was executed again and completed successfully. The updated Docker image was published, and Kubernetes deployed the new version of the application.
+
+The updated application was verified in the browser, displaying the heading **My Student Task Manager**.
+
+Commit:
+
+https://github.com/mrutunjayborde/student-task-manager/commit/35bad11866f0b475c62a6b43cf362dd03358fe54
+
+## Jenkins Environment
+
+Jenkins was configured locally in a Docker container on Windows. Docker Desktop and Minikube were used for building the image and deploying the application to Kubernetes.
+
+**Note:** Jenkins on AWS EC2 has not been configured as part of the setup described above. If AWS-based Jenkins is required by the assignment evaluation, that configuration must be completed separately and documented after verification.
+
+## Conclusion
+
+This project demonstrates a basic CI/CD workflow for a Flask application using GitHub, Jenkins, Docker, Docker Hub, Kubernetes, and Minikube. The pipeline successfully built and tested the application, published its Docker image, deployed it to Kubernetes, and verified an updated application after a source-code change.
+
+## Submission Checklist
+
+- [x] GitHub repository containing the project source code
+- [x] Dockerfile
+- [x] Jenkinsfile
+- [x] Kubernetes Deployment and Service manifests
+- [x] Docker Hub image repository
+- [x] Successful Jenkins pipeline execution
+- [x] Kubernetes deployment and pod verification
+- [x] Updated application verified in the browser
+- [x] Screenshots of the pipeline, image, deployment, and updated application
+- [ ] AWS Jenkins setup, if required by the assignment rubric
