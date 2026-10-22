@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -10,7 +11,6 @@ pipeline {
         APP_IMAGE = 'student-task-manager'
         DOCKERHUB_CREDENTIALS = 'dockerhub-creds'
         DOCKERHUB_USERNAME = 'mrutunjayborde'
-        KUBECONFIG = '/var/jenkins_home/minikube-config'
     }
 
     stages {
@@ -62,30 +62,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Deploy to Minikube') {
-            steps {
-                sh '''
-                    sed "s|DOCKERHUB_IMAGE_PLACEHOLDER|$DOCKERHUB_USERNAME/$APP_IMAGE:$BUILD_NUMBER|g" \
-                      k8s/deployment.yaml > k8s/deployment.generated.yaml
-
-                    kubectl --kubeconfig="$KUBECONFIG" apply -f k8s/deployment.generated.yaml
-                    kubectl --kubeconfig="$KUBECONFIG" apply -f k8s/service.yaml
-
-                    kubectl --kubeconfig="$KUBECONFIG" rollout status deployment/student-task-manager --timeout=180s
-                '''
-            }
-        }
-
-        stage('Verify Deployment') {
-            steps {
-                sh '''
-                    kubectl --kubeconfig="$KUBECONFIG" get pods -l app=student-task-manager
-                    kubectl --kubeconfig="$KUBECONFIG" get deployment student-task-manager
-                    kubectl --kubeconfig="$KUBECONFIG" get service student-task-manager
-                '''
-            }
-        }
     }
 
     post {
@@ -93,7 +69,7 @@ pipeline {
             sh 'docker image prune -f || true'
         }
         success {
-            echo 'Pipeline succeeded: tested, built, pushed and deployed Student Task Manager.'
+            echo 'Pipeline succeeded: tested, built and pushed Student Task Manager.'
         }
         failure {
             echo 'Pipeline failed. Check the failed stage in Console Output.'
