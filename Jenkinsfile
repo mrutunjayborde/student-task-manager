@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -25,7 +24,7 @@ pipeline {
             steps {
                 sh '''
                     docker run --rm \
-                      -v jenkins_home:/var/jenkins_home \
+                      -v "$WORKSPACE:$WORKSPACE" \
                       -w "$WORKSPACE" \
                       -e PYTHONPATH="$WORKSPACE" \
                       python:3.12-slim sh -c \
